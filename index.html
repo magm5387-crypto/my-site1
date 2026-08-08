@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stamina — клавиатурный тренажёр</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0f172a;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 850px;
+            width: 100%;
+            border: 2px solid #334155;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        h1 {
+            text-align: center;
+            font-weight: 300;
+            font-size: 28px;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+        h1 span {
+            color: #60a5fa;
+            font-weight: 700;
+        }
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        /* Настройки */
+        .settings {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: #0f172a;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .settings label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .settings select {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+        .settings select:focus {
+            border-color: #60a5fa;
+        }
+        .settings .badge {
+            background: #60a5fa;
+            color: #0f172a;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-item .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1px;
+        }
+        .stat-item .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+        .stat-item .value.green {
+            color: #4ade80;
+        }
+        .stat-item .value.red {
+            color: #f87171;
+        }
+        .stat-item .value.orange {
+            color: #fbbf24;
+        }
+        .stat-item .value.pink {
+            color: #f472b6;
+        }
+        .text-display {
+            background: #0f172a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            margin-bottom: 20px;
+            min-height: 100px;
+            font-size: 22px;
+            line-height: 1.8;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            word-wrap: break-word;
+            user-select: none;
+            position: relative;
+        }
+        .text-display .char {
+            transition: all 0.05s;
+        }
+        .text-display .char.correct {
+            color: #4ade80;
+        }
+        .text-display .char.incorrect {
+            color: #f87171;
+            background: #7f1d1d;
+            border-radius: 3px;
+        }
+        .text-display .char.current {
+            background: #60a5fa;
+            color: #0f172a;
+            border-radius: 3px;
+            padding: 0 2px;
+            animation: blink 0.8s infinite;
+        }
+        .text-display .char.correct.current {
+            background: #4ade80;
+            color: #0f172a;
+        }
+        @keyframes blink {
+            0%,
+            49% {
+                opacity: 1;
+            }
+            50%,
+            100% {
+                opacity: 0.3;
+            }
+        }
+        .keyboard {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #334155;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .kb-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 5px;
+            flex-wrap: nowrap;
+        }
+        .kb-key {
+            min-width: 38px;
+            height: 38px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            transition: all 0.1s;
+        }
+        .kb-key.pressed {
+            background: #60a5fa;
+            color: #0f172a;
+            transform: scale(0.95);
+            border-color: #60a5fa;
+        }
+        .kb-key.wide {
+            min-width: 55px;
+        }
+        .kb-key.space {
+            min-width: 200px;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .controls button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+        .btn-start {
+            background: #22c55e;
+        }
+        .btn-start:hover {
+            background: #16a34a;
+            transform: scale(1.03);
+        }
+        .btn-start:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-reset {
+            background: #f59e0b;
+        }
+        .btn-reset:hover {
+            background: #d97706;
+        }
+        .btn-new {
+            background: #3b82f6;
+        }
+        .btn-new:hover {
+            background: #2563eb;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #334155;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa, #4ade80);
+            border-radius: 4px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 15px;
+        }
+        .footer kbd {
+            background: #1e293b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #475569;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        .level-badge {
+            display: inline-block;
+            padding: 2px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+        .level-badge.easy {
+            background: #4ade80;
+            color: #0f172a;
+        }
+        .level-badge.medium {
+            background: #fbbf24;
+            color: #0f172a;
+        }
+        .level-badge.hard {
+            background: #f87171;
+            color: #0f172a;
+        }
+        .level-badge.expert {
+            background: #f472b6;
+            color: #0f172a;
+        }
+.corner-text {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    color: #60a5fa;
+    font-size: 20px;
+    font-weight: 600;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.9);
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: 2px solid #334155;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Эффект при наведении */
+.corner-text:hover {
+    transform: scale(1.05);
+    border-color: #60a5fa;
+    box-shadow: 0 8px 25px rgba(96, 165, 250, 0.2);
+}
+    </style>
+</head>
+<body>
+<div class="corner-text">НИЩИ</div>
+    <div class="container">
+        <h1>⌨️ <span>Stamina</span> Online</h1>
+        <p class="subtitle">Тренажёр слепой печати</p>
+
+        <!-- НАСТРОЙКИ -->
+        <div class="settings">
+            <label>
+                🌐 Язык
+                <select id="langSelect">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                </select>
+            </label>
+            <label>
+                📊 Уровень
+                <select id="levelSelect">
+                    <option value="easy">🟢 Лёгкий</option>
+                    <option value="medium" selected>🟡 Средний</option>
+                    <option value="hard">🔴 Сложный</option>
+                    <option value="expert">🟣 Для НИЩЕЙ</option>
+                </select>
+            </label>
+            <span id="levelBadge" class="level-badge medium">Средний</span>
+        </div>
+
+        <!-- СТАТИСТИКА -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="label">Скорость</div>
+                <div class="value" id="speedDisplay">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Символов</div>
+                <div class="value green" id="charsDisplay">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Ошибок</div>
+                <div class="value red" id="errorsDisplay">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Точность</div>
+                <div class="value orange" id="accuracyDisplay">0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">Уровень</div>
+                <div class="value pink" id="levelDisplay">—</div>
+            </div>
+        </div>
+
+        <!-- ТЕКСТ -->
+        <div class="text-display" id="textDisplay"></div>
+
+        <!-- КЛАВИАТУРА -->
+        <div class="keyboard" id="keyboard">
+            <div class="kb-row">
+                <div class="kb-key" data-key="`">`</div>
+                <div class="kb-key" data-key="1">1</div>
+                <div class="kb-key" data-key="2">2</div>
+                <div class="kb-key" data-key="3">3</div>
+                <div class="kb-key" data-key="4">4</div>
+                <div class="kb-key" data-key="5">5</div>
+                <div class="kb-key" data-key="6">6</div>
+                <div class="kb-key" data-key="7">7</div>
+                <div class="kb-key" data-key="8">8</div>
+                <div class="kb-key" data-key="9">9</div>
+                <div class="kb-key" data-key="0">0</div>
+                <div class="kb-key" data-key="-">-</div>
+                <div class="kb-key" data-key="=">=</div>
+                <div class="kb-key wide" data-key="Backspace">⌫</div>
+            </div>
+            <div class="kb-row">
+                <div class="kb-key wide" data-key="Tab">Tab</div>
+                <div class="kb-key" data-key="q">q</div>
+                <div class="kb-key" data-key="w">w</div>
+                <div class="kb-key" data-key="e">e</div>
+                <div class="kb-key" data-key="r">r</div>
+                <div class="kb-key" data-key="t">t</div>
+                <div class="kb-key" data-key="y">y</div>
+                <div class="kb-key" data-key="u">u</div>
+                <div class="kb-key" data-key="i">i</div>
+                <div class="kb-key" data-key="o">o</div>
+                <div class="kb-key" data-key="p">p</div>
+                <div class="kb-key" data-key="[">[</div>
+                <div class="kb-key" data-key="]">]</div>
+                <div class="kb-key wide" data-key="\">\</div>
+            </div>
+            <div class="kb-row">
+                <div class="kb-key wide" data-key="CapsLock">⇪</div>
+                <div class="kb-key" data-key="a">a</div>
+                <div class="kb-key" data-key="s">s</div>
+                <div class="kb-key" data-key="d">d</div>
+                <div class="kb-key" data-key="f">f</div>
+                <div class="kb-key" data-key="g">g</div>
+                <div class="kb-key" data-key="h">h</div>
+                <div class="kb-key" data-key="j">j</div>
+                <div class="kb-key" data-key="k">k</div>
+                <div class="kb-key" data-key="l">l</div>
+                <div class="kb-key" data-key=";">;</div>
+                <div class="kb-key" data-key="'">'</div>
+                <div class="kb-key wide" data-key="Enter">↵</div>
+            </div>
+            <div class="kb-row">
+                <div class="kb-key wide" data-key="ShiftLeft">⇧</div>
+                <div class="kb-key" data-key="z">z</div>
+                <div class="kb-key" data-key="x">x</div>
+                <div class="kb-key" data-key="c">c</div>
+                <div class="kb-key" data-key="v">v</div>
+                <div class="kb-key" data-key="b">b</div>
+                <div class="kb-key" data-key="n">n</div>
+                <div class="kb-key" data-key="m">m</div>
+                <div class="kb-key" data-key=",">,</div>
+                <div class="kb-key" data-key=".">.</div>
+                <div class="kb-key" data-key="/">/</div>
+                <div class="kb-key wide" data-key="ShiftRight">⇧</div>
+            </div>
+            <div class="kb-row">
+                <div class="kb-key wide" data-key="ControlLeft">Ctrl</div>
+                <div class="kb-key wide" data-key="AltLeft">Alt</div>
+                <div class="kb-key space" data-key=" ">Пробел</div>
+                <div class="kb-key wide" data-key="AltRight">Alt</div>
+                <div class="kb-key wide" data-key="ControlRight">Ctrl</div>
+            </div>
+        </div>
+
+        <!-- КНОПКИ -->
+        <div class="controls">
+            <button class="btn-start" id="startBtn">▶ Начать</button>
+            <button class="btn-reset" id="resetBtn">🔄 Сброс</button>
+            <button class="btn-new" id="newBtn">📝 Новый текст</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="fill" id="progressFill"></div>
+        </div>
+        <div class="footer">
+            Нажимай клавиши, чтобы печатать. <kbd>Enter</kbd> — начать заново
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 1. БАЗА ДАННЫХ ТЕКСТОВ (РУС/АНГЛ, 4 УРОВНЯ)
+        // ============================================================
+        const TEXT_DB = {
+            ru: {
+                easy: [
+                    "кот и собака играли во дворе",
+                    "мама мыла раму и окно",
+                    "на улице было тепло и солнечно",
+                    "я люблю читать книги",
+                    "мы пошли гулять в парк",
+                ],
+                medium: [
+                    "В лесу родилась ёлочка, в лесу она росла",
+                    "Мороз и солнце день чудесный ещё ты дремлешь друг прелестный",
+                    "Я помню чудное мгновенье передо мной явилась ты",
+                    "У лукоморья дуб зелёный златая цепь на дубе том",
+                    "Ветер по морю гуляет и кораблик подгоняет",
+                ],
+                hard: [
+                    "Жил старик со своею старухой у самого синего моря они жили в ветхой землянке ровно тридцать лет и три года",
+                    "Люблю грозу в начале мая когда весенний первый гром как бы резвяся и играя грохочет в небе голубом",
+                    "Я вас любил любовь ещё быть может в душе моей угасла не совсем но пусть она вас больше не тревожит",
+                    "Буря мглою небо кроет вихри снежные крутя то как зверь она завоет то заплачет как дитя",
+                    "Прощай немытая Россия страна рабов страна господ и вы мундиры голубые и ты им преданный народ",
+                ],
+                expert: [
+                    "НИЩ он и в Африке нищ. Существует два способа построения программного обеспечения один из них сделать его настолько простым что в нём явно не будет дефектов а другой сделать его настолько сложным что в нём не будет явных дефектов",
+                    "НИЩ он и в Африке нищ.Лучший способ предсказать будущее это изобрести его и двигаться вперёд несмотря ни на какие преграды и трудности которые встречаются на пути",
+                    "НИЩ он и в Африке нищ.Гений это один процент вдохновения и девяносто девять процентов пота поэтому нужно работать каждый день чтобы достичь успеха в любом деле",
+                ]
+            },
+            en: {
+                easy: [
+                    "the cat and dog played in the yard",
+                    "my mother washed the window and frame",
+                    "it was warm and sunny outside",
+                    "i love to read books",
+                    "we went for a walk in the park",
+                ],
+                medium: [
+                    "The quick brown fox jumps over the lazy dog",
+                    "She sells sea shells on the sea shore",
+                    "How much wood would a woodchuck chuck if a woodchuck could chuck wood",
+                    "Peter Piper picked a peck of pickled peppers",
+                    "Betty Botter bought some butter but she said the butter is bitter",
+                ],
+                hard: [
+                    "To be or not to be that is the question whether tis nobler in the mind to suffer the slings and arrows of outrageous fortune",
+                    "It was the best of times it was the worst of times it was the age of wisdom it was the age of foolishness",
+                    "All that glitters is not gold often have you heard that told many a man his life hath sold but my outside to behold",
+                    "The only thing we have to fear is fear itself nameless unreasoning unjustified terror which paralyzes needed efforts to convert retreat into advance",
+                ],
+                expert: [
+                    "There are two ways of constructing a software design one way is to make it so simple that there are obviously no deficiencies and the other way is to make it so complicated that there are no obvious deficiencies",
+                    "The best way to predict the future is to invent it and move forward despite any obstacles and difficulties that come along the way",
+                    "Genius is one percent inspiration and ninety nine percent perspiration so you need to work every day to achieve success in any endeavor",
+                ]
+            }
+        };
+
+        // ============================================================
+        // 2. СОСТОЯНИЕ
+        // ============================================================
+        let currentText = '';
+        let currentIndex = 0;
+        let charCount = 0;
+        let errorCount = 0;
+        let startTime = null;
+        let isFinished = false;
+        let isActive = false;
+        let currentLang = 'ru';
+        let currentLevel = 'medium';
+
+        const textDisplay = document.getElementById('textDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const charsDisplay = document.getElementById('charsDisplay');
+        const errorsDisplay = document.getElementById('errorsDisplay');
+        const accuracyDisplay = document.getElementById('accuracyDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const progressFill = document.getElementById('progressFill');
+        const startBtn = document.getElementById('startBtn');
+        const langSelect = document.getElementById('langSelect');
+        const levelSelect = document.getElementById('levelSelect');
+        const levelBadge = document.getElementById('levelBadge');
+
+        const LEVEL_NAMES = {
+            easy: '🟢 Лёгкий',
+            medium: '🟡 Средний',
+            hard: '🔴 Сложный',
+            expert: '🟣 Эксперт'
+        };
+        const LEVEL_CLASSES = {
+            easy: 'easy',
+            medium: 'medium',
+            hard: 'hard',
+            expert: 'expert'
+        };
+
+        // ============================================================
+        // 3. ПОЛУЧЕНИЕ ТЕКСТА
+        // ============================================================
+        function getTexts() {
+            return TEXT_DB[currentLang][currentLevel] || TEXT_DB.ru.easy;
+        }
+
+        function getRandomText() {
+            const texts = getTexts();
+            return texts[Math.floor(Math.random() * texts.length)];
+        }
+
+        // ============================================================
+        // 4. ОТРИСОВКА
+        // ============================================================
+        function renderText() {
+            if (!currentText) {
+                textDisplay.innerHTML = 'Выбери язык и уровень, затем нажми "Новый текст"';
+                return;
+            }
+
+            let html = '';
+            for (let i = 0; i < currentText.length; i++) {
+                const char = currentText[i];
+                let className = 'char';
+                if (i < currentIndex) {
+                    className += ' correct';
+                } else if (i === currentIndex && isActive) {
+                    className += ' current';
+                }
+                html += `<span class="${className}">${char}</span>`;
+            }
+            textDisplay.innerHTML = html;
+
+            // Прогресс
+            const progress = currentText.length > 0 ? (currentIndex / currentText.length) * 100 : 0;
+            progressFill.style.width = Math.min(progress, 100) + '%';
+
+            // Статистика
+            charsDisplay.textContent = charCount;
+            errorsDisplay.textContent = errorCount;
+
+            const total = charCount + errorCount;
+            const accuracy = total > 0 ? Math.round((charCount / total) * 100) : 100;
+            accuracyDisplay.textContent = accuracy + '%';
+
+            // Скорость
+            if (startTime && isActive) {
+                const elapsed = (Date.now() - startTime) / 1000 / 60;
+                if (elapsed > 0) {
+                    const speed = Math.round(charCount / elapsed);
+                    speedDisplay.textContent = speed;
+                }
+            } else {
+                speedDisplay.textContent = '0';
+            }
+
+            // Уровень
+            levelDisplay.textContent = currentLevel.charAt(0).toUpperCase() + currentLevel.slice(1);
+
+            // Проверка завершения
+            if (currentIndex >= currentText.length && isActive) {
+                isFinished = true;
+                isActive = false;
+                startBtn.disabled = false;
+                startBtn.textContent = '▶ Начать';
+                const elapsed = (Date.now() - startTime) / 1000;
+                const speed = charCount > 0 ? Math.round(charCount / (elapsed / 60)) : 0;
+                const accuracyVal = charCount + errorCount > 0 ? Math.round((charCount / (charCount + errorCount)) * 100) :
+                    100;
+                setTimeout(() => {
+                    alert(`🏆 Готово!\nСкорость: ${speed} зн/мин\nТочность: ${accuracyVal}%\nВремя: ${elapsed.toFixed(1)}с`);
+                }, 100);
+            }
+        }
+
+        // ============================================================
+        // 5. ОБРАБОТКА ВВОДА
+        // ============================================================
+        function handleKeyPress(e) {
+            if (!isActive || isFinished) return;
+
+            const key = e.key;
+
+            if (key === 'Shift' || key === 'Control' || key === 'Alt' ||
+                key === 'CapsLock' || key === 'Tab' || key === 'Meta') {
+                return;
+            }
+
+            if (key.length > 1 && key !== 'Backspace') return;
+
+            // Подсветка клавиши
+            const keyEl = document.querySelector(`.kb-key[data-key="${key}"]`) ||
+                document.querySelector(`.kb-key[data-key="${key.toLowerCase()}"]`);
+            if (keyEl) {
+                keyEl.classList.add('pressed');
+                setTimeout(() => keyEl.classList.remove('pressed'), 150);
+            }
+
+            // Backspace
+            if (key === 'Backspace') {
+                if (currentIndex > 0 && startTime) {
+                    currentIndex--;
+                    // Откатываем символ
+                    if (charCount > 0) charCount--;
+                    renderText();
+                }
+                return;
+            }
+
+            if (currentIndex >= currentText.length) return;
+
+            if (!startTime) {
+                startTime = Date.now();
+            }
+
+            const expectedChar = currentText[currentIndex];
+            const typedChar = key;
+
+            const isCorrect = typedChar === expectedChar ||
+                (typedChar.toLowerCase() === expectedChar.toLowerCase() &&
+                    typedChar !== expectedChar);
+
+            if (isCorrect) {
+                charCount++;
+            } else {
+                errorCount++;
+            }
+
+            currentIndex++;
+            renderText();
+        }
+
+        // ============================================================
+        // 6. УПРАВЛЕНИЕ
+        // ============================================================
+        function startGame() {
+            if (isActive) return;
+
+            if (!currentText) {
+                currentText = getRandomText();
+            }
+
+            currentIndex = 0;
+            charCount = 0;
+            errorCount = 0;
+            startTime = null;
+            isFinished = false;
+            isActive = true;
+            startBtn.disabled = true;
+            startBtn.textContent = '⏳ Печатай...';
+            renderText();
+            document.body.focus();
+        }
+
+        function resetGame() {
+            isActive = false;
+            isFinished = false;
+            currentIndex = 0;
+            charCount = 0;
+            errorCount = 0;
+            startTime = null;
+            startBtn.disabled = false;
+            startBtn.textContent = '▶ Начать';
+            speedDisplay.textContent = '0';
+            charsDisplay.textContent = '0';
+            errorsDisplay.textContent = '0';
+            accuracyDisplay.textContent = '0%';
+            progressFill.style.width = '0%';
+            if (currentText) {
+                renderText();
+            } else {
+                textDisplay.innerHTML = 'Выбери язык и уровень, затем нажми "Новый текст"';
+            }
+        }
+
+        function newText() {
+            if (isActive) return;
+            currentText = getRandomText();
+            resetGame();
+            setTimeout(() => startGame(), 300);
+        }
+
+        function updateSettings() {
+            currentLang = langSelect.value;
+            currentLevel = levelSelect.value;
+            levelBadge.textContent = LEVEL_NAMES[currentLevel];
+            levelBadge.className = 'level-badge ' + LEVEL_CLASSES[currentLevel];
+            currentText = getRandomText();
+            resetGame();
+            renderText();
+        }
+
+        // ============================================================
+        // 7. СОБЫТИЯ
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            const key = e.key;
+
+            // Подсветка клавиш
+            if (key.length === 1 || key === 'Backspace' || key === 'Enter') {
+                const keyEl = document.querySelector(`.kb-key[data-key="${key}"]`) ||
+                    document.querySelector(`.kb-key[data-key="${key.toLowerCase()}"]`);
+                if (keyEl) {
+                    keyEl.classList.add('pressed');
+                    setTimeout(() => keyEl.classList.remove('pressed'), 150);
+                }
+            }
+
+            if (key === 'Enter' && !isActive) {
+                e.preventDefault();
+                if (currentText && !isFinished) {
+                    startGame();
+                } else {
+                    newText();
+                }
+                return;
+            }
+        });
+
+        document.addEventListener('keydown', handleKeyPress);
+
+        startBtn.addEventListener('click', function() {
+            if (!currentText) {
+                newText();
+            } else if (isFinished) {
+                resetGame();
+                setTimeout(() => startGame(), 300);
+            } else {
+                startGame();
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', resetGame);
+        document.getElementById('newBtn').addEventListener('click', newText);
+
+        langSelect.addEventListener('change', updateSettings);
+        levelSelect.addEventListener('change', updateSettings);
+
+        // ============================================================
+        // 8. ЗАПУСК
+        // ============================================================
+        updateSettings();
+    </script>
+</body>
+</html>
